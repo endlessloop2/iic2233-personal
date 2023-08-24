@@ -1,8 +1,9 @@
 ---
+attachments: [Clipboard_2023-08-23-22-56-03.png, Clipboard_2023-08-23-23-00-22.png, Clipboard_2023-08-24-01-02-10.png, Clipboard_2023-08-24-01-05-55.png, Clipboard_2023-08-24-01-10-37.png, Clipboard_2023-08-24-01-11-05.png]
 tags: [prog-avanzada]
 title: Semana 2
 created: '2023-08-23T02:16:55.058Z'
-modified: '2023-08-23T04:35:27.661Z'
+modified: '2023-08-24T05:11:05.429Z'
 ---
 
 # Semana 2
@@ -23,7 +24,7 @@ class Padre:
 ## Se pasa la clase Padre cómo parametro
 class SubClase(Padre):
   def __init__(self, a, b):
-    # Se llama al constructor de la clase padre
+    # Se llama al constructor de la clase padre con sus párametros.
     Padre.__init__(self, a, b)
 ```
 
@@ -301,14 +302,259 @@ activar(juan)
 ```
 
 ## Multiherencia
+- Nota: Todas las clases de Python heredan de `object`.
 - Se conoce como multiherencia a que una subclase puede heredar más de una clase a la vez. (Varias superclases)
+- Por ejemplo, una clase Academico podría tener dos roles, y heredar de Investigador y Docente.
+- Ejemplo base (bien hecho):
+
+```py
+class Investigador:
+
+    def __init__(self, area='', **kwargs):
+        # Utilizamos super() para heredar correctamente
+        super().__init__(**kwargs)
+        self.area = area
+        self.num_publicaciones = 0
+
+
+class Docente:
+
+    def __init__(self, departamento='', **kwargs):
+        # Utilizamos super() para heredar correctamente
+        super().__init__(**kwargs)
+        self.departamento = departamento
+        self.num_cursos = 3
+
+# Aquí decimos que Academico hereda tanto de Docente como de Investigador
+class Academico(Docente, Investigador):
+    
+    def __init__(self, nombre, oficina, **kwargs):
+        # Utilizamos super() para heredar correctamente
+        super().__init__(**kwargs)
+        self.nombre = nombre
+        self.oficina = oficina
+
+
+p1 = Academico(
+    "Emilia Donoso",
+    oficina="O5",
+    area="Inteligencia de Máquina",
+    departamento="Ciencia De La Computación"
+)
+#tmb funciona
+# p1 = Academico(
+#     "Emilia Donoso",
+#     "O5",
+#     area="Inteligencia de Máquina",
+#     departamento="Ciencia De La Computación"
+# )
+print(p1.nombre)
+print(p1.area)
+print(p1.departamento)
+```
 
 ### Problema del diamante
+- Si tenemos, por ejemplo, una claseB (padre), de la cual heredan 2 subclases, por la izquierda y derecha, tenemos una **jerarquía de diamante**.
+![](@attachment/Clipboard_2023-08-23-22-56-03.png)
+- El problema con esto, es que tenemos más de un "camino" desde la clase inferior (SubClaseA), que puede pasar por 2 clases distintas (SubClaseIzquierda y SubClaseDerecha) hasta la clase superior (ClaseB).
+- Esto pasa para todas las clases de Python, las cuales heredan de `object`:
+![](@attachment/Clipboard_2023-08-23-23-00-22.png)
 
-### Ejemplo 1
+- El problema con tener mas de un camino para llegar a laclase padre, es decir "problema del diamante", es que, por ejemplo, al hacer `super()` desde la clase SubClase de la foto anterior, llamaríamos dos veces al inicializador de object. Entre otros problemas.
 
-#### Uso de *args y *kwargs
+### __mro__, obteniendo el orden de herencia
+- Podemos obtener el orden en el que se ejecutan los métodos en un esquema de multiherencia, por ejemplo:
+```py
+MiSubclase.__mro__
+## puede retornar algo como
+# (__main__.MiSubClase,
+#  __main__.SubClaseIzquierda,
+#  __main__.SubClaseDerecha,
+#  __main__.ClaseB,
+#  object)
+```
 
+- blablabla mucho texto
+
+### Uso de *args y *kwargs
+- Python permite otorgar argumentos a una función mediante `*args` y `**kwargs`. Para que sirven?
+
+
+- `*args`: Permite recibir una lista de argumentos de largo variable, sin keywords asociados. * desempaqueta los args y los pasa como argumentos posicionales. Al ser una lista, se puede acceder a un argumento usando [].
+Ej:
+```py
+def imprimir2(argumento_obligatorio, *args, **kwargs):
+    print("kwarg 0", args[0])  ## IMPRIME 4444
+    
+
+print("\nEjemplo 2, Usar *")
+imprimir2("waku waku", 4444, "starlight", [2021, 2020])
+```
+- `**kwargs`: Es una secuencia de argumentos de largo variable, cada elemento de la lista tiene asociado un **keyword**. ** mapea los elementos desde un map y los pasa a la función por su keyword asociado.
+Ej:
+```py
+
+def imprimir(arg1, **kwargs):
+  ## no importa el orden de los argumentos
+  test = "SI" ## hace algo con el test que recibe
+  mono = 0## hace algo con el mono que recibe
+  pass
+
+## seria equivalente a que imprimir se llamara como
+## imprimir(arg1, mono, test), y se pasara asi los elementos
+## tmb equivalente a imprimir(arg1, test, mono) ## NO IMPORTA EL ORDEN
+imprimir("hola", mono=1, test="SI")
+
+```
+
+- Nota: kwargs y args son solo nombres por convencion, se puede usar cualquier nombre, usando `*argumentosposicionales` o `**args_keywords` por ejemplo.
+
+### Ejemplo 1 y sus implementaciones
+- Por ejemplo, una clase Academico podría tener dos roles, y heredar de Investigador y Docente.
+
+#### Implementación original
+- El problema de este ejemplo es que al inicializar Academico llamamos dos veces al inicializador de `object` por problema del diamante.
+```py
+class Investigador:
+
+    def __init__(self, area):
+        self.area = area
+        self.num_publicaciones = 0
+
+
+class Docente:
+
+    def __init__(self, departamento):
+        self.departamento = departamento
+        self.num_cursos = 3
+
+
+class Academico(Docente, Investigador):
+
+    def __init__(self, nombre, oficina, area_investigacion, departamento):
+        # Queremos reemplazar esto por un super().__init__(...)
+        Investigador.__init__(self, area_investigacion)
+        Docente.__init__(self, departamento)
+        self.nombre = nombre
+        self.oficina = oficina
+
+
+p1 = Academico("Emilia Donoso", "O-5", "Inteligencia de Máquina", "Ciencia De La Computación")
+print(p1.nombre)
+print(p1.area)
+print(p1.departamento)
+```
+#### Mejor solución para el ejemplo 1
+- Usar solo `super().__init__()` para inicializar y los kwargs 
+- Mi solución:
+```py
+class Investigador:
+    ## si queremos que area sea opcional
+    ## se escribe area='' para el caso de que no se entregue area
+    
+    ## con kwargs acepta elementos adicionales y no los usa.
+    def __init__(self, area = '', **kwargs):
+        super().__init__(**kwargs) ## segun el mro, inicializamos object
+        self.area = area
+        self.num_publicaciones = 0
+
+
+class Docente:
+
+    def __init__(self, departamento = '', **kwargs):
+        ## OJO, TAMBIEN SE PONE SUPER KWARGS AQUI
+        ## YA QUE SEGUN MRO, EL ORDEN DE PYTHON ES
+        ## (<class '__main__.Academico'>, <class '__main__.Docente'>, <class '__main__.Investigador'>, <class 'object'>)
+        ## por lo tanto, todos deben tener ese super.
+        super().__init__(**kwargs) # mro: inicializamos Investigador
+
+        self.departamento = departamento
+        self.num_cursos = 3
+
+
+class Academico(Docente, Investigador):
+    ## area_investigacion y departamento reemplazados por kwargs
+    def __init__(self, nombre, oficina, **kwargs):
+        # Queremos reemplazar esto por un super().__init__(...)
+        #Investigador.__init__(self, area_investigacion)
+        #Docente.__init__(self, departamento)
+        # le pasamos los kwargs y la clase padre vera que hace con ellos.
+        super().__init__(**kwargs) # mro, llamaria a docente
+        self.nombre = nombre
+        self.oficina = oficina
+
+
+## Se pasan dos elementos con keys asociadas, que son tomados como
+## **kwargs por Academico, y luego si son usados directamente en Docente
+## o Investigador. En Docente se usa area, y en Invest. usa departamento
+p1 = Academico("Emilia Donoso", "O-5", area="Inteligencia de Máquina", departamento="Ciencia De La Computación")
+print(p1.nombre)
+print(p1.area)
+print(p1.departamento)
+```
+- Mro: `(<class '__main__.Academico'>, <class '__main__.Docente'>, <class '__main__.Investigador'>, <class 'object'>`
+
+- Solución oficial con toda la explicación y su output intuitivo:
+```py
+class Investigador:
+
+    def __init__(self, area, **kwargs):
+        print(f"init Investigador con area '{area}' y kwargs:{kwargs}")
+        super().__init__(**kwargs)
+        self.area = area
+        self.num_publicaciones = 0
+
+
+class Docente:
+
+    def __init__(self, departamento, **kwargs):
+        print(f"init Docente con depto '{departamento}' y kwargs:{kwargs}")
+        super().__init__(**kwargs)
+        self.departamento = departamento
+        self.num_cursos = 3
+
+
+class Academico(Docente, Investigador):
+
+    def __init__(self, nombre, oficina, **kwargs):
+        print(f"init Academico con nombre '{nombre}', oficina '{oficina}', kwargs:{kwargs}")
+        super().__init__(**kwargs)
+        self.nombre = nombre
+        self.oficina = oficina
+
+
+print(Academico.__mro__)
+print("--------")
+
+p1 = Academico(
+    "Emilia Donoso",
+    oficina="O5",
+    area="I.A.",
+    departamento="Computación"
+)
+print("--------")
+print(p1.nombre)
+print(p1.area)
+print(p1.departamento)
+```
+- Salida:
+```
+(<class '__main__.Academico'>, <class '__main__.Docente'>, <class '__main__.Investigador'>, <class 'object'>)
+--------
+init Academico con nombre 'Emilia Donoso', oficina 'O5', kwargs:{'area': 'I.A.', 'departamento': 'Computación'}
+init Docente con depto 'Computación' y kwargs:{'area': 'I.A.'}
+init Investigador con area 'I.A.' y kwargs:{}
+--------
+Emilia Donoso
+I.A.
+Computación
+```
+
+#### Otras implementaciones y sus problemas
+- pendiente
+
+### Ejemplo Avatar
+- pendiente (probablemente nunca lo haga.)
 
 
 ## Clases abstractas
@@ -334,6 +580,139 @@ activar(juan)
 - Python no tiene forma de crear abstract classes, pero el modulo abc lo incluye.
 - Se usa la clase ABC y el decorador @abstractmethod.
 
+- Ejemplo genérico:
+```py
+from abc import ABC, abstractmethod
+
+
+class Base(ABC):
+
+    ## aqui tambien podriamos tener un init y metodos normales.
+    @abstractmethod
+    def metodo_1(self):
+        pass
+
+    @abstractmethod
+    def metodo_2(self):
+        pass
+
+    ## no se puede acceder directamente a base.valor, si se puede desde la clase hija
+    @property
+    @abstractmethod
+    def valor(self):
+        return '¿Llegaremos aquí?'
+
+class SubClase1(Base):
+
+    def metodo_1(self):## reimplementa el metodo 2
+        pass
+
+    def metodo_2(self): ## lo mismo, reimplementa
+        pass
+    def a(self): ## puede tener mas cosas
+        pass
+
+    ## reimplementa y redefine valor, ahora si es accesible
+    @property
+    def valor(self):
+        return 'Propiedad concreta'
+
+b = Base()## 
+print(f'Base.value: {b.valor}') ## error, no se puede acceder desde una clase Base a nada de abstract.
+i = Implementacion()
+print(f'implementacion.valor: {i.valor}')## 'Propiedad concreta'.
+
+```
+
+### Ejemplo personaje
+- Pendiente, copiado y pegado
+```py
+from random import randint
+from time import sleep
+
+
+class Personaje(ABC):
+
+    def __init__(self, nombre, x, y, energia):
+        self.nombre = nombre
+        self.x = x
+        self.y = y
+        self.energia = energia
+
+    @property
+    def energia(self):
+        return self.__energia
+
+    @energia.setter
+    def energia(self, valor):
+        self.__energia = max(valor, 0)
+
+    def simular(self):
+        while self.energia > 0:
+            sleep(1)
+            self.saludar()
+            self.moverse()
+            self.gastar_energia()
+        print("Perdí toda mi energía :(")
+
+    @abstractmethod
+    def moverse(self):
+        pass
+
+    @abstractmethod
+    def gastar_energia(self):
+        pass
+
+    @abstractmethod
+    def saludar(self):
+        print(f"Soy {self.nombre}. Estoy en {(self.x, self.y)}.")
+
+
+## una implementacion de la abstract class personaje
+## personaje igual tiene cosas no abstractas, como x, y, simular q no son abstractas
+class Jugador(Personaje):
+
+    ## redefine
+    def moverse(self):
+        # El jugador se mueve en la misma dirección de forma constante
+        self.x += 1
+        self.y += 1
+
+    ##redefine
+    def gastar_energia(self):
+        # Pierde una cantidad aleatoria de energía
+        cambio = randint(-1, 3)
+        ## usa property no abstract de la clase padre
+        self.energia -= cambio
+        if cambio < 0: # Puede que gane energía de vez en cuando
+            print("¡Gané energía!")
+
+    ##redefine llamando a saludar abstract, si se puede
+    def saludar(self):
+        # Utiliza la definición de Personaje para saludar
+        super().saludar()
+
+## otra implementacion de la clase abstracta personaje
+class Enemigo(Personaje):
+
+    ##redefine
+    def moverse(self):
+        # Se mueven aleatoriamente por el mapa
+        self.x += randint(-1, 1)
+        self.y += randint(-1, 1)
+
+    ##redefine
+    def gastar_energia(self):
+        # Gastan energía a tasa constante
+        ## usa property no abstract de la clase padre
+        self.energia -= 1
+
+    def saludar(self):
+        # Agrega un grito por sobre la implementación original
+        print("¡Te atraparé!")
+        super().saludar()## llama a saludar de personaje
+
+```
 
 ## Bonus: Diagrama de Clases
 - Se pueden modelar las clases que componen un sistema, con sus atributos metodos y interacciones. 
@@ -347,6 +726,25 @@ activar(juan)
 
 #### Relaciones
 
+##### Composición
+- En esta relacion, la vida del objeto esta condicionada por el tiempo de vida del objeto que lo incluye.
+- Es decir, no tiene sentido que exista el objeto incluido si no existe quien lo incluye.
+- Ejemplo: Mario no tiene sentido si no existe Juego:
+- Ej:
+![](@attachment/Clipboard_2023-08-24-01-10-37.png)
+
+
+##### Agregación
+- Es un tipo de relacion donde no hay necesidad de que exista el elemento que contiene a la clase para tener sentido. (reescribir)
+- Ej: Los goombas pueden existir por si solos y tiene sentido, sin que existan como parte de un ejercito. Por otro lado los goombas no tienen sentido sin existir el juego.
+![](@attachment/Clipboard_2023-08-24-01-05-55.png)
+
+##### Herencia
+- Se representa así:
+![](@attachment/Clipboard_2023-08-24-01-02-10.png)
+
+##### Ejemplo completado:
+![](@attachment/Clipboard_2023-08-24-01-11-05.png)
 
 ## Bonus: Métodos estáticos
 - Son métodos que pertenecen a una clase, pero no dependen de informacion ni de atributos de la instancia. No ocupan self. Se usa el `@staticmethod` para definir un metodo estatico.
