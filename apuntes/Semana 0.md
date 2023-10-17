@@ -47,7 +47,7 @@ from modulo import *
 ```
 ### Uso de _\_name_\_
 - Sirve para ver el nombre real de un modulo, independiente del alias.
-- Siempre es el nombre del archivo, excepto si es un archivo que esta siendo ejecutado como el main de un programa.
+- Siempre es el nombre del archivo, **excepto si es un archivo que esta siendo ejecutado como el main de un programa**.
 - Puede ser usado desde dentro de un modulo o como parte de una propiedad . del modulo.
 
 ```py
@@ -92,7 +92,7 @@ mi_lista.append(1)
 ## añadir varios elementos en una llamada
 mi_lista.extend([1,5,7])
 
-## Insertar en posición especifia
+## Insertar en posición especifica
 mi_lista.insert(3, 'ola')
 # esto inserta y mueve el elemento ahi a la derecha
 
@@ -126,7 +126,14 @@ for word in importante:
 - Permite sacar partes de una lista:
 - Forma:
 `secuencia[inicio:término:pasos]`
-- por terminar
+- Ejemplos:
+  - `a[s:e]`: Retorna desde s hasta e-1
+  - `a[:e]`: Retorna hasta e-1
+  - `a[:]`: Crea copia *shallow*. Nota: esto quiere decir que el array esta en una nueva dirección, pero los elementos son referencias a los elementos en memoria de los elementos del arreglo original.
+  - Nota: `-n` es como indexar de forma `e-n`. Todo funciona al reves.
+  - `a[-1]`: Retorna el último elemento
+  - `a[-n:]` = `a[e-n:]`: Retorna los últimos n elementos
+  - `a[:-n]` = `a[:e-n]`: Retorna todos los elementos menos los últimos n.
 
 ### Sort
 - `lista.sort(reverse=False)` ordena una lista
@@ -135,6 +142,7 @@ for word in importante:
 
 ### Aparte: Tuplas
 - Las tuplas son como listas pero inmutables
+
 ```py
 tuple_constructor = tuple(("dsa", "developement", "deep learning"))
 mytuple = ("Geeks",)#cn la coma
@@ -146,7 +154,9 @@ var = ("Geeks", "for", "Geeks")
 ## Paths
 
 - Módulo os: Se usa os.path para manejo de archivos, importar os.
-- Path absoluto y relativo: trivial
+- Path absoluto y relativo
+  - Absoluto: Parte del directorio raiz del pc.
+  - Relativo: A partir de la ubicación del programa.
 
 - Por lo general se usan paths relativos, ya que no dependen de los directorios exactos del computador dónde se instala el programa.
 - Un path es la ruta a un archivo o directorio.
@@ -243,7 +253,7 @@ Directorios:
 ```
 
 ### Ejemplo de lectura escritura básico
-- No hay mhco que decir
+- No hay mucho que decir
 ```py
 ruta_juego_1 = os.path.join("data", "gato", "juego_1.txt")
 archivo = open(ruta_juego_1, "rt")
@@ -258,7 +268,8 @@ with open(ruta_juego_1, "rt") as archivo:
 ```
 
 ## Strings
-pendiente, no muy importante
+- Son **inmutables** en Python. No se puede asignar a `cadena[1]` por ejemplo.
+- TODO: expandir
 
 ## Annotations
 - Permite añadir como comentario los tipos de datos!
@@ -282,9 +293,14 @@ def contar_vocales(texto: str) -> int:
   return 400
 ```
 ### Módulo typing
-pendiente
+- pendiente
 ### otros
-pendiente
+- pendiente
+
+
+
+
+
 
 
 
